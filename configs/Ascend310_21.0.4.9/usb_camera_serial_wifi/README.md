@@ -12,4 +12,5 @@ XHCI必须使用`drivers/`目录下的`xhci.tar.gz`驱动包替换编译出的�
 
 - USB串口芯片CH341
 
-- USB无线网卡RTL8192CU
+- USB无线网卡芯片RTL8192CU  
+RTL8192CU芯片固件`rtl8192cufw_TMSC.bin`请前往[该网址](https://anduin.linuxfromscratch.org/sources/linux-firmware/rtlwifi/rtl8192cufw_TMSC.bin)获取。详情请参考本目录下的`userfilelist.csv`。
