@@ -16,33 +16,48 @@ XHCI必须使用`drivers/`目录下的`xhci.tar.gz`驱动包替换编译出的�
 
 ## USB串口芯片
 ### CP210X
+✅ [已测试]
 ### CH341
+✅ [已测试]
 
 ## USB无线网卡芯片
 芯片固件请前往如下网址获取。详情请参考本目录下的`userfilelist.csv`。
 ```
 https://anduin.linuxfromscratch.org/sources/linux-firmware/
 ```
+### Realtek
 
-### RTL8192CU
+#### RTL8192CU
+✅ [已测试]
+
 芯片固件`rtl8192cufw_TMSC.bin`请前往如下网址获取
 ```
 https://anduin.linuxfromscratch.org/sources/linux-firmware/rtlwifi/rtl8192cufw_TMSC.bin
 ```
 
-### MT7601U
+#### RTL8188CU
+芯片固件`rtl8192cufw_TMSC.bin`请前往如下网址获取
+```
+https://anduin.linuxfromscratch.org/sources/linux-firmware/rtlwifi/rtl8192cufw_TMSC.bin
+```
+
+### MediaTek
+
+#### MT7601U
+✅ [已测试]
+
 芯片固件`mt7601u.bin`请前往如下网址获取
 ```
 https://anduin.linuxfromscratch.org/sources/linux-firmware/mt7601u.bin
 ```
 
-### MT76x0U
+#### MT76x0U
 芯片固件`mt7610u.bin`请前往如下网址获取
 ```
 https://anduin.linuxfromscratch.org/sources/linux-firmware/mediatek/mt7610u.bin
 ```
 
-### MT76x2U
+#### MT76x2U
 芯片固件`mt7662u.bin`请前往如下网址获取
 ```
 https://anduin.linuxfromscratch.org/sources/linux-firmware/mediatek/mt7662u.bin
