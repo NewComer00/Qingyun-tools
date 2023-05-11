@@ -48,7 +48,7 @@ https://anduin.linuxfromscratch.org/sources/linux-firmware/rtlwifi/rtl8192cufw_T
 
 芯片固件`mt7601u.bin`请前往如下网址获取
 ```
-https://anduin.linuxfromscratch.org/sources/linux-firmware/mt7601u.bin
+https://anduin.linuxfromscratch.org/sources/linux-firmware/mediatek/mt7601u.bin
 ```
 
 #### MT76x0U
