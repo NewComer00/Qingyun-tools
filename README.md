@@ -57,17 +57,17 @@ https://cloud.189.cn/web/share?code=niquM3u6N3Ar（访问码：gjk1）
 
 ### 使用预设的内核配置
 `configs/`目录下准备了适用于特定版本SDK的（版本号参照`Atlas-200-sdk_<版本号>.zip`，尚未测试版本号不匹配的情况），开启了不同功能的内核配置文件。  
-如`configs/Ascend310_21.0.4.9/usb_camera_serial/mini_defconfig`配置文件，它适用于21.0.4.9版本的SDK，且预先开启了USB支持、USB摄像头支持以及某些USB串口芯片支持。详情请见对应配置文件旁的`README.md`和`userfilelist.csv`。
+如`configs/Ascend310_21.0.4.9/universal/mini_defconfig`配置文件，它适用于21.0.4.9版本的SDK，且提供了最通用的设备驱动支持。详情请见对应配置文件旁的`README.md`和`userfilelist.csv`。
 
 - 如需使用上述配置作为内核的**临时配置文件**，请执行以下操作
 ```
-cp configs/Ascend310_21.0.4.9/usb_camera_serial/mini_defconfig build/source/kernel/linux-4.19/arch/arm64/configs/mini_defconfig
+cp configs/Ascend310_21.0.4.9/universal/mini_defconfig build/source/kernel/linux-4.19/arch/arm64/configs/mini_defconfig
 ```
 然后执行`./scripts/build_kernel.sh`，选择`编译内核`即可开始编译。若要恢复SDK源码中的默认内核配置，选择`重置内核配置`即可恢复默认配置。
 
 - 如需使用上述配置作为内核的**默认配置文件**，请执行以下操作
 ```
-cp configs/Ascend310_21.0.4.9/usb_camera_serial/mini_defconfig build/mini_defconfig.original
+cp configs/Ascend310_21.0.4.9/universal/mini_defconfig build/mini_defconfig.original
 ```
 然后执行`./scripts/build_kernel.sh`，选择`重置内核配置`即可将指定预设配置作为内核的默认配置。若要恢复SDK源码中的默认内核配置，删除文件`build/mini_defconfig.original`后重新执行`./scripts/build_kernel.sh`，选择`重置内核配置`即可恢复默认配置。
 
