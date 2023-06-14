@@ -3,7 +3,7 @@ module,operation,relative_path_in_pkg,relative_install_path,reserved,permission,
 ko,copy,xhci-hcd.ko,/var/davinci/driver/xhci-hcd.ko,TRUE,440,root:root,all,NA,all,NA
 ko,copy,xhci-pci.ko,/var/davinci/driver/xhci-pci.ko,TRUE,440,root:root,all,NA,all,NA
 ko,copy,xhci-plat-hcd.ko,/var/davinci/driver/xhci-plat-hcd.ko,TRUE,440,root:root,all,NA,all,NA
-ko,copy,8821.ko,/var/davinci/driver/8821.ko,TRUE,440,root:root,all,NA,all,NA
+ko,copy,8821cu.ko,/var/davinci/driver/8821cu.ko,TRUE,440,root:root,all,NA,all,NA
 app,copy,K2026090.mem,/lib/firmware/renesas/K2026090.mem,TRUE,440,root:root,all,NA,all,NA
 app,copy,rtl8192cufw_TMSC.bin,/lib/firmware/rtlwifi/rtl8192cufw_TMSC.bin,TRUE,440,root:root,all,NA,all,NA
 app,copy,mt7601u.bin,/lib/firmware/mt7601u.bin,TRUE,440,root:root,all,NA,all,NA
@@ -15,4 +15,4 @@ module,operation,relative_path_in_pkg,relative_install_path
 ko,insmod,xhci-hcd.ko,/var/davinci/driver/xhci-hcd.ko
 ko,insmod,xhci-pci.ko,/var/davinci/driver/xhci-pci.ko
 ko,insmod,xhci-plat-hcd.ko,/var/davinci/driver/xhci-plat-hcd.ko
-ko,insmod,8821.ko,/var/davinci/driver/8821.ko
+ko,insmod,8821cu.ko,/var/davinci/driver/8821cu.ko
