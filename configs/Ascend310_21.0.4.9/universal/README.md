@@ -3,7 +3,7 @@
 ## USB 3.0
 通用设备
 
-XHCI必须使用`drivers/`目录下的`xhci.tar.gz`驱动包替换编译出的相应驱动，并参考本目录下或xhci驱动包中的`userfilelist.csv`。
+在“重构驱动包”时，USB相关驱动与固件位于`drivers/`目录下的`xhci.xz`驱动包中。解压驱动包，参考本目录下或xhci驱动包中的`userfilelist.csv`，将所需驱动和固件放置到规定位置。
 
 ## USB 2.0
 通用设备
@@ -36,10 +36,17 @@ https://anduin.linuxfromscratch.org/sources/linux-firmware/rtlwifi/rtl8192cufw_T
 ```
 
 #### RTL8188CU
+✅ [已测试]
+
 芯片固件`rtl8192cufw_TMSC.bin`请前往如下网址获取
 ```
 https://anduin.linuxfromscratch.org/sources/linux-firmware/rtlwifi/rtl8192cufw_TMSC.bin
 ```
+
+#### RTL8811CU/RTL8821CU
+✅ [已测试]
+
+编译好的驱动程序`8821cu.ko`位于`drivers/rtl8821cu.xz`压缩包中。如果需要使用该网卡驱动，在重构驱动包时将`8821cu.ko`复制到指定路径下即可。也可在运行中的系统上执行`insmod <ko文件位置>`来加载该驱动。
 
 ### MediaTek
 
