@@ -14,6 +14,7 @@ KERNEL_CFG_NAME=mini_defconfig
 ROOT_DIR="$(readlink -f "$PWD/..")"
 BUILD_DIR=$ROOT_DIR/build
 PACKAGE_DIR=$ROOT_DIR/packages
+PREDEF_CFG_DIR=$ROOT_DIR/configs
 
 # ******************** LOCAL VARS ********************
 
@@ -79,16 +80,7 @@ init () {
     fi
 
     if [ ! -f $ORIGINAL_CFG ]; then
-        echo '正在备份原始内核配置文件...'
-        if [ -f $ASC_SRC_PACKAGE ]; then
-            dir_depth=$(echo $KERNEL_CFG_RELATIVE | grep -o '/' - | wc -l)
-            tar -xzf $ASC_SRC_PACKAGE --directory $BUILD_DIR $KERNEL_CFG_RELATIVE --strip-components=$dir_depth
-            mv $BUILD_DIR/$KERNEL_CFG_NAME $ORIGINAL_CFG
-            echo '备份完毕'
-        else
-            echoerr "找不到内核源码压缩包 $(basename $ASC_SRC_PACKAGE)\n请访问 $ASC_SDK_URL 下载所需版本的 Atlas-200-sdk_<版本号>.zip ，解压后将其中的 $(basename $ASC_SRC_PACKAGE) 放置在 $PACKAGE_DIR 目录下"
-            exit -1
-        fi
+        choose_kernel_config
     fi
 
     if [ $NEED_CROSS_COMPILE = true ]; then
@@ -108,12 +100,58 @@ init () {
     echo '初始化完成'
 }
 
-# 重置内核配置
-reset_kernel_config () {
-    echo '正在重置内核配置...'
-    cp $ORIGINAL_CFG $KERNEL_CFG_DIR/$KERNEL_CFG_NAME
-    _make $KERNEL_CFG_NAME
-    echo '重置内核配置完成'
+# 恢复原始内核配置文件
+restore_default_kernel_config () {
+    echo '正在恢复原始内核配置文件...'
+    if [ -f $ASC_SRC_PACKAGE ]; then
+        dir_depth=$(echo $KERNEL_CFG_RELATIVE | grep -o '/' - | wc -l)
+        tar -xzf $ASC_SRC_PACKAGE --directory $BUILD_DIR $KERNEL_CFG_RELATIVE --strip-components=$dir_depth
+        mv $BUILD_DIR/$KERNEL_CFG_NAME $ORIGINAL_CFG
+        echo '恢复完毕'
+    else
+        echoerr "找不到内核源码压缩包 $(basename $ASC_SRC_PACKAGE)\n请访问 $ASC_SDK_URL 下载所需版本的 Atlas-200-sdk_<版本号>.zip ，解压后将其中的 $(basename $ASC_SRC_PACKAGE) 放置在 $PACKAGE_DIR 目录下"
+        exit -1
+    fi
+}
+
+# 选择预设的内核配置
+choose_kernel_config () {
+    echo '检索所有预设内核配置...'
+    declare -a config_list
+    while IFS=  read -r -d $'\0'; do
+        config_list+=("$REPLY")
+    done < <(find "$PREDEF_CFG_DIR" -name "mini_defconfig" -print0)
+
+    echo '查找到的预设内核配置如下：'
+    printf "    %s. %s\n" "1" "使用华为源码包默认内核配置（不支持USB设备）"
+    for i in "${!config_list[@]}"; do
+        printf "    %s. %s\n" "$((i+2))" "${config_list[$i]}"
+    done
+
+    err_flag=0
+    echo '输入要使用的预设配置编号：'
+    read selection
+    if ! [[ $selection =~ ^[0-9]+$ ]] ; then
+        err_flag=1
+        echoerr '请输入合法的数字！'
+    else
+        if [[ $selection -eq 1 ]] ; then
+            restore_default_kernel_config
+        elif [[ $selection -ne 0 && $selection -le $((${#config_list[@]}+1)) ]] ; then
+            ln -fs "${config_list[$(($selection-2))]}" $ORIGINAL_CFG
+        else
+            err_flag=1
+            echoerr '请输入合法的数字！'
+        fi
+    fi
+
+    if [[ $err_flag -eq 0 ]] ; then
+        cp $ORIGINAL_CFG $KERNEL_CFG_DIR/$KERNEL_CFG_NAME
+        _make $KERNEL_CFG_NAME
+        echo '选择预设内核配置完成'
+    else
+        echo '未选择有效的内核配置，无事发生'
+    fi
 }
 
 # 修改内核配置
@@ -160,7 +198,7 @@ clear_build () {
 do_all () {
     echo '清空编译结果后，重新配置并编译内核'
     clear_build
-    reset_kernel_config
+    choose_kernel_config
     change_kernel_config
     build_kernel
     echo '操作完成'
@@ -169,7 +207,7 @@ do_all () {
 # 展示编译内核前需要安装的依赖
 show_dep () {
     echo '编译内核前请确保已经安装如下依赖（以apt包管理器为例）：'
-    echo 'sudo apt install -y python make gcc unzip bison flex libncurses-dev squashfs-tools bc'
+    echo 'sudo apt install -y python3 make gcc unzip bison flex libncurses-dev squashfs-tools bc'
 }
 
 # ******************** MAIN SCRIPT ********************
@@ -180,7 +218,7 @@ init
 echo -e '需要进行什么操作？\n'\
 '    1. 展示编译内核前需要安装的依赖\n'\
 '    2. 清空编译结果后，重新配置并编译内核（依次执行6-3-4-5）\n'\
-'    3. 重置内核配置\n'\
+'    3. 选择预设的内核配置（先前对内核配置的修改会被重置）\n'\
 '    4. 修改内核配置\n'\
 '    5. 编译内核\n'\
 '    6. 清空编译结果\n'\
@@ -197,8 +235,8 @@ case $selection in
         do_all
         ;;
     3)
-        # 重置内核配置
-        reset_kernel_config
+        # 选择预设的内核配置
+        choose_kernel_config
         ;;
     4)
         # 修改内核配置

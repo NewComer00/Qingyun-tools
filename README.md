@@ -7,7 +7,7 @@
 本工具支持在青云开发板上直接编译，也支持使用x64 Linux服务器（含虚拟机与WSL）交叉编译。若要在青云开发板上直接编译，建议使用`Windows Terminal`、`MobaXterm`等现代终端模拟器，通过SSH连接青云的系统终端。
 
 ### 下载内核源代码压缩包
-首先，请前往华为的技术支持网站，获取您所需版本的Atlas 200[软件包](https://support.huawei.com/enterprise/zh/ascend-computing/atlas-200-pid-23464086/software)`Atlas-200-sdk_<版本号>.zip`。
+首先，请前往华为的技术支持网站，获取您所需版本的Atlas 200[软件包](https://support.huawei.com/enterprise/zh/ascend-computing/atlas-200-pid-23464086/software)`Atlas-200-sdk_<版本号>.zip`。目前支持21.0.4.9版本的SDK。
 
 > **⚠️注意**  
 > 在下载前，华为会提示**需要注册成为它的商用客户才能获取软件包**。
@@ -26,6 +26,10 @@
 https://cloud.189.cn/web/share?code=niquM3u6N3Ar（访问码：gjk1）
 ```
 
+### 预设的内核配置
+我们为开发者提供了一些预设好的内核配置文件。`configs/`目录下准备了适用于特定版本SDK的，开启了不同功能的内核配置文件（版本号参照`Atlas-200-sdk_<版本号>.zip`，尚未测试版本号不匹配的情况）。  
+如`configs/Ascend310_21.0.4.9/universal/mini_defconfig`配置文件，它适用于21.0.4.9版本的SDK，且提供了最通用的设备驱动支持。详情请见对应配置文件旁的`README.md`和`userfilelist.csv`。
+
 ### 运行内核编译脚本
 `scripts/build_kernel.sh`脚本用于配置并编译开发板的Linux系统内核。
 
@@ -40,12 +44,10 @@ https://cloud.189.cn/web/share?code=niquM3u6N3Ar（访问码：gjk1）
 ./scripts/build_kernel.sh
 ```
 
-> **⚠️特别注意⚠️**  
-> **开发板的USB XHCI使用了特殊的驱动！若要开发板上的USB正常工作，请务必保证在内核配置界面`USB_XHCI_HCD`的选项为`M`，并在打包时使用`drivers/xhci.xz`里提供的特殊驱动代替编译出的XHCI驱动！**  
-> 如果感到困惑，可以参考[使用预设的内核配置](#使用预设的内核配置)一节中所提到的**预设配置文件**。`configs/`目录下列举了适用于“不同SDK版本”的，“开启了不同功能”的预设内核配置。
-
 **📘脚本说明**
 1. 脚本执行时会首先进行初始化。初始化时脚本将查看系统源代码、编译工具链等文件是否存在，最终相应文件会被解压至新建的`build/`目录中。
+
+2. 初始化过程中，用户需要选择一个预设的内核配置。之后用户可以直接按照这个配置编译内核，或者基于该配置进行个性化修改。
 
 2. 初始化完毕后，脚本会在终端中输出操作菜单。用户键入相应的菜单项数字后，回车即可执行。
 
@@ -55,21 +57,6 @@ https://cloud.189.cn/web/share?code=niquM3u6N3Ar（访问码：gjk1）
 
 5. `清空编译结果`会删除`build/source/output/`与`build/source/kernel/out/`目录，但**并不会修改`build/source/repack/`目录**。在“更新配置文件”和“重构驱动包”时请**特别注意该目录下文件的修改日期**，不要将旧文件误打包了。
 
-### 使用预设的内核配置
-`configs/`目录下准备了适用于特定版本SDK的（版本号参照`Atlas-200-sdk_<版本号>.zip`，尚未测试版本号不匹配的情况），开启了不同功能的内核配置文件。  
-如`configs/Ascend310_21.0.4.9/universal/mini_defconfig`配置文件，它适用于21.0.4.9版本的SDK，且提供了最通用的设备驱动支持。详情请见对应配置文件旁的`README.md`和`userfilelist.csv`。
-
-- 如需使用上述配置作为内核的**临时配置文件**，请执行以下操作
-```
-cp configs/Ascend310_21.0.4.9/universal/mini_defconfig build/source/kernel/linux-4.19/arch/arm64/configs/mini_defconfig
-```
-然后执行`./scripts/build_kernel.sh`，选择`编译内核`即可开始编译。若要恢复SDK源码中的默认内核配置，选择`重置内核配置`即可恢复默认配置。
-
-- 如需使用上述配置作为内核的**默认配置文件**，请执行以下操作
-```
-cp configs/Ascend310_21.0.4.9/universal/mini_defconfig build/mini_defconfig.original
-```
-然后执行`./scripts/build_kernel.sh`，选择`重置内核配置`即可将指定预设配置作为内核的默认配置。若要恢复SDK源码中的默认内核配置，删除文件`build/mini_defconfig.original`后重新执行`./scripts/build_kernel.sh`，选择`重置内核配置`即可恢复默认配置。
 
 ## 更新配置文件
 ## 重构驱动包
