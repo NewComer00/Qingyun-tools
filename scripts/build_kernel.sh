@@ -79,10 +79,6 @@ init () {
         fi
     fi
 
-    if [ ! -f $ORIGINAL_CFG ]; then
-        choose_kernel_config
-    fi
-
     if [ $NEED_CROSS_COMPILE = true ]; then
         if [ ! -d $TOOLCHAIN_DIR ]; then
             echo '正在解压GCC ARM64交叉编译工具链...'
@@ -240,6 +236,10 @@ case $selection in
         ;;
     4)
         # 修改内核配置
+        if [ ! -f $ORIGINAL_CFG ]; then
+            echo '修改内核配置前，请先选择要基于的预设内核配置'
+            choose_kernel_config
+        fi
         change_kernel_config
         ;;
     5)
