@@ -3,7 +3,16 @@
 ## USB 3.0
 通用设备
 
-在“重构驱动包”时，USB相关驱动与固件位于`drivers/`目录下的`xhci.xz`驱动包中。解压驱动包，参考本目录下或xhci驱动包中的`userfilelist.csv`，将所需驱动和固件放置到规定位置。
+内核编译完毕后，需要用到的USB芯片驱动为`xhci-pci-renesas.ko`与`xhci-pci.ko`
+```
+cp build/source/output/xhci-pci-renesas.ko build/source/repack/
+cp build/source/output/xhci-pci.ko build/source/repack/
+```
+
+此外，芯片固件请按如下方式获取
+```
+wget 'https://github.com/NewComer00/uPD72020x-Firmware/raw/master/UPDATE.mem%202.0.2.0' -O build/source/repack/renesas_usb_fw.mem
+```
 
 ## USB 2.0
 通用设备
