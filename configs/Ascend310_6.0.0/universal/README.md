@@ -55,7 +55,7 @@ https://anduin.linuxfromscratch.org/sources/linux-firmware/rtlwifi/rtl8192cufw_T
 #### RTL8811CU/RTL8821CU
 ✅ [已测试]
 
-编译好的驱动程序`8821cu.ko`位于`drivers/rtl8821cu.xz`压缩包中。如果需要使用该网卡驱动，在重构驱动包时将`8821cu.ko`复制到指定路径下即可。也可在运行中的系统上执行`insmod <ko文件位置>`来加载该驱动。
+编译好的驱动程序`8821cu.ko`位于`drivers/rtl8821cu.tar.xz`压缩包中。如果需要使用该网卡驱动，在重构驱动包时将`8821cu.ko`复制到指定路径下即可。也可在运行中的系统上执行`insmod <ko文件位置>`来加载该驱动。
 
 驱动源代码请前往如下网址获取
 ```
@@ -65,11 +65,12 @@ https://github.com/brektrou/rtl8821CU
 #### RTL8192EU
 ✅ [已测试]
 
-编译好的驱动程序`8192eu.ko`位于`drivers/rtl8192eu.xz`压缩包中。如果需要使用该网卡驱动，在重构驱动包时将`8192eu.ko`复制到指定路径下即可。也可在运行中的系统上执行`insmod <ko文件位置>`来加载该驱动。
+编译好的驱动程序`8192eu.ko`位于`drivers/rtl8192eu.tar.xz`压缩包中。如果需要使用该网卡驱动，在重构驱动包时将`8192eu.ko`复制到指定路径下即可。也可在运行中的系统上执行`insmod <ko文件位置>`来加载该驱动。
 
 驱动源代码请前往如下网址获取
 ```
 https://github.com/Mange/rtl8192eu-linux-driver
+```
 
 ### MediaTek
 
