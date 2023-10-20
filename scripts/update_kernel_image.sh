@@ -35,4 +35,9 @@ IMAGE_OFFSET=8192
 IMAGE_SIZE=65536
 
 OF_DIR=$COMPONENTS_MAIN_OFFSET
+dd if=/dev/zero of=${DEV_NAME} count=$IMAGE_SIZE seek=$[OF_DIR+IMAGE_OFFSET] bs=$sectorSize
+dd if=${FWM_DIR}Image of=${DEV_NAME} count=$IMAGE_SIZE seek=$[OF_DIR+IMAGE_OFFSET] bs=$sectorSize
+
+OF_DIR=$COMPONENTS_BACKUP_OFFSET
+dd if=/dev/zero of=${DEV_NAME} count=$IMAGE_SIZE seek=$[OF_DIR+IMAGE_OFFSET] bs=$sectorSize
 dd if=${FWM_DIR}Image of=${DEV_NAME} count=$IMAGE_SIZE seek=$[OF_DIR+IMAGE_OFFSET] bs=$sectorSize
