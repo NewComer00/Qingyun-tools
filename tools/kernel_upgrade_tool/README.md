@@ -9,5 +9,5 @@ Upgrade kernel & drivers built by [Qingyun-tools](https://github.com/NewComer00/
 ## Usage
 Copy this package to the OS of Qingyun board.
 ```shell
-sudo ./run.py
+sudo ./run
 ```
