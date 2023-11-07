@@ -34,7 +34,7 @@ https://cloud.189.cn/web/share?code=niquM3u6N3Ar（访问码：gjk1）
 如`configs/Ascend310_21.0.4.9/universal/mini_defconfig`配置文件，它适用于21.0.4.9版本的SDK，且提供了最通用的设备驱动支持。详情请见对应配置文件旁的`README.md`和`userfilelist.csv`。
 
 ### 运行内核编译脚本
-`scripts/build_kernel.sh`脚本用于配置并编译开发板的Linux系统内核。
+`scripts/build_kernel`脚本用于配置并编译开发板的Linux系统内核。
 
 > **⚠️注意**  
 > 脚本默认处于交叉编译模式。如需在开发板系统上直接编译，请先打开脚本文件，修改配置：
@@ -44,7 +44,7 @@ https://cloud.189.cn/web/share?code=niquM3u6N3Ar（访问码：gjk1）
 
 在仓库根目录下直接执行脚本，详细情况请阅读下面的`脚本说明`。
 ```
-./scripts/build_kernel.sh
+./scripts/build_kernel
 ```
 
 **📘脚本说明**

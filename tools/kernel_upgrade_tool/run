@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+
+import io
+import re
+import os
+import csv
+import time
+import shutil
+import pathlib
+import subprocess
+
+
+TOOL_DIR = pathlib.Path(__file__).parent.resolve()
+DRIVER_DIR = TOOL_DIR / "drivers"
+USERFILELIST_CSV_FILE = DRIVER_DIR / "userfilelist.csv"
+KERNEL_IMAGE_DIR = TOOL_DIR / "kernel_image"
+KERNEL_IMAGE_FILE = KERNEL_IMAGE_DIR / "Image"
+
+print("Upgrading the kernel image...")
+time.sleep(1)
+subprocess.run(
+    [
+        "/var/davinci/driver/upgrade-tool",
+        "--device_index",
+        "-1",
+        "--component",
+        "kernel",
+        "--media",
+        "--mmc",
+        "--main",
+        "--path",
+        KERNEL_IMAGE_FILE,
+    ]
+)
+print("[Success]")
+print()
+
+print(f"Getting the list of drivers to be installed from '{USERFILELIST_CSV_FILE}' ...")
+time.sleep(1)
+with open(USERFILELIST_CSV_FILE) as raw_file:
+    data = raw_file.read()
+    regex = r"^USERFILE\n((?:.|\n)+)\n\n^INSMOD QUEUE"
+    try:
+        matched = re.match(regex, data, flags=re.MULTILINE).group(1)
+    except IndexError:
+        raise Exception(
+            f"Invalid format of '{USERFILELIST_CSV_FILE}'. The file might be corrupted."
+        )
+print("=" * 10 + " Driver List " + "=" * 10 + f"\n{matched}")
+print()
+
+time.sleep(1)
+print("Installing drivers...")
+with io.StringIO(matched) as csv_file:
+    user_file_list = csv.DictReader(csv_file)
+    for user_file in user_file_list:
+        try:
+            operation = user_file["operation"]
+            relative_path_in_pkg = pathlib.Path(user_file["relative_path_in_pkg"])
+            relative_install_path = pathlib.Path(user_file["relative_install_path"])
+            permission = int(user_file["permission"], 8)  # octal
+            owner, group = user_file["owner:group"].split(":")
+        except KeyError:
+            raise Exception(
+                f"Invalid format of '{USERFILELIST_CSV_FILE}'. The file might be corrupted."
+            )
+
+        print(
+            f"Installing '{DRIVER_DIR / relative_path_in_pkg}' to '{relative_install_path}' ..."
+        )
+        time.sleep(0.5)
+        if operation != "copy":
+            raise Exception(
+                f"Unsupported operation: '{operation}'. The only supported operation is 'copy'."
+            )
+        else:
+            relative_install_path.parent.mkdir(
+                mode=permission, parents=True, exist_ok=True
+            )
+            shutil.copyfile(
+                src=DRIVER_DIR / relative_path_in_pkg, dst=relative_install_path
+            )
+            os.chmod(path=relative_install_path, mode=permission)
+            shutil.chown(path=relative_install_path, user=owner, group=group)
+            print("[Success]")
+
+print()
+print("All upgrade completed! Please 'sudo reboot' the machine.")

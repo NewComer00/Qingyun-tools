@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$(readlink -f "$0")")"
+
+
+ARGPARSE_DESCRIPTION="Update the kernel sector in BLOCK_DEVICE or DISK_IMAGE with the KERNEL_IMAGE file."
+source argparse.bash || exit 1
+argparse "$@" <<EOF || exit 1
+parser.add_argument('kernel_image', help='path of the kernel image file, i.e., ./Image')
+group = parser.add_mutually_exclusive_group(required=True)
+group.add_argument('-b', '--block-device', help='path of the block device, i.e., /dev/sdc')
+group.add_argument('-d', '--disk-image', help='path of the disk image file, i.e., ./qingyun.img')
+parser.add_argument('-y', '--assume-yes', action='store_true', help='assume "yes" as answer to all prompts and run non-interactively')
+EOF
+
+if [[ -e "$BLOCK_DEVICE" ]]; then
+    DISK_IMAGE=
+    echo "sudo permission is required."
+    sudo lsblk "$BLOCK_DEVICE"
+    DEV_NAME="$BLOCK_DEVICE"
+elif [[ -e "$DISK_IMAGE" ]]; then
+    BLOCK_DEVICE=
+    echo "Finding the first unused loop device..."
+    echo "sudo permission is required."
+    loop_dev="$(sudo losetup -f)"
+    echo "[OK]"
+    echo "Associating loop device '$loop_dev' with image file '$DISK_IMAGE'..."
+    sudo losetup --partscan "$loop_dev" "$DISK_IMAGE"
+    echo "[OK]"
+    DEV_NAME="$loop_dev"
+else
+    >&2 echo "You must specify a valid BLOCK_DEVICE or DISK_IMAGE"
+    echo "KERNEL_IMAGE: $KERNEL_IMAGE"
+    echo "BLOCK_DEVICE: $BLOCK_DEVICE"
+    echo "DISK_IMAGE: $DISK_IMAGE"
+    exit 1
+fi
+
+# try
+set +e; ( set -e; trap 'exit 1' SIGINT;
+
+    echo "About to update the kernel sector in '${BLOCK_DEVICE}${DISK_IMAGE}' with '$KERNEL_IMAGE'."
+    if [[ "$ASSUME_YES" != 'yes' ]]; then
+        read -p "Are you sure to continue? [Y/n]" confirm
+        if [[ "$confirm" == '' || "$confirm" == [yY] || "$confirm" == [yY][eE][sS] ]]; then
+            :
+        else
+            echo "Aborted."
+            exit 0
+        fi
+    fi
+
+    sectorEnd=`sudo fdisk -l | grep "$DEV_NAME:" | awk -F ' ' '{print $7}'`
+    sectorSize=`sudo fdisk -l | grep -A 2 "$DEV_NAME:" | grep "Units" | awk -F ' ' '{print $6}'`
+
+    if [[ "$sectorSize" -ne 512 ]];then
+        echo "Failed: sector size is not 512!"
+        exit 1;
+    fi
+
+    # 536870912 bytes is 512M
+    sectorRsv=$(( 536870912/sectorSize+1 ))
+    sectorEnd=$(( sectorEnd-sectorRsv ))
+
+    #component main/backup offset
+    COMPONENTS_MAIN_OFFSET=$(( sectorEnd+1 ))
+    COMPONENTS_BACKUP_OFFSET=$(( COMPONENTS_MAIN_OFFSET+73728 ))
+
+    IMAGE_OFFSET=8192
+    IMAGE_SIZE=65536
+
+    OF_DIR=$COMPONENTS_MAIN_OFFSET
+    sudo dd if=/dev/zero of=${DEV_NAME} count=$IMAGE_SIZE seek=$(( OF_DIR+IMAGE_OFFSET )) bs=$sectorSize
+    sudo dd if=${KERNEL_IMAGE} of=${DEV_NAME} count=$IMAGE_SIZE seek=$(( OF_DIR+IMAGE_OFFSET )) bs=$sectorSize
+
+    OF_DIR=$COMPONENTS_BACKUP_OFFSET
+    sudo dd if=/dev/zero of=${DEV_NAME} count=$IMAGE_SIZE seek=$(( OF_DIR+IMAGE_OFFSET )) bs=$sectorSize
+    sudo dd if=${KERNEL_IMAGE} of=${DEV_NAME} count=$IMAGE_SIZE seek=$(( OF_DIR+IMAGE_OFFSET )) bs=$sectorSize
+
+# catch
+); set -e;
+
+if [[ -e "$loop_dev" ]]; then
+    echo "Detaching loop device '$loop_dev' from image file '$DISK_IMAGE'..."
+    sudo losetup -d "$loop_dev"
+    echo "[OK]"
+fi
+
+echo "Script execution finished."

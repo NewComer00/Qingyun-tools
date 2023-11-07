@@ -1,21 +1,18 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
+cd "$(dirname "$(readlink -f "$0")")"
 
-argin="$1"
-if [[ "$argin" == "--help" || "$argin" == "-h" || "$argin" == "" ]]; then
-    printf "Description: Edit the given DISK_IMAGE file dumped from the SD card of a Qingyun 1000 board.\n"
-    printf "Usage: %s DISK_IMAGE | -h | --help\n" "$0"
-    printf "    -h, --help    print this help and exit\n"
-    printf "Examples:\n"
-    printf "    %s qingyun1000.img\n" "$0"
-    printf "    %s -h\n" "$0"
-    printf "    %s --help\n" "$0"
-    exit 0
-elif [[ ! -f "$argin" ]]; then
-    >&2 echo "The given disk image file '$argin' does not exist!"
+
+ARGPARSE_DESCRIPTION="Edit the given DISK_IMAGE file dumped from the SD card of a Qingyun 1000 board."
+source argparse.bash || exit 1
+argparse "$@" <<EOF || exit 1
+parser.add_argument('disk_image', help='path of the disk image file, i.e., ./qingyun.img')
+EOF
+
+if [[ ! -f "$DISK_IMAGE" ]]; then
+    >&2 echo "The given disk image file '$DISK_IMAGE' does not exist!"
     exit 1
 fi
-disk_img="$argin"
 
 dep_pkgs="qemu-user-static"
 echo "Check if $dep_pkgs exist..."
@@ -29,8 +26,8 @@ echo "Finding the first unused loop device..."
 echo "sudo permission is required."
 loop_dev="$(sudo losetup -f)"
 echo "[OK]"
-echo "Associating loop device '$loop_dev' with image file '$disk_img'..."
-sudo losetup --partscan "$loop_dev" "$disk_img"
+echo "Associating loop device '$loop_dev' with image file '$DISK_IMAGE'..."
+sudo losetup --partscan "$loop_dev" "$DISK_IMAGE"
 echo "[OK]"
 
 # try
@@ -40,7 +37,7 @@ set +e; ( set -e;
     lsblk "$loop_dev"
     partitions_num=$(($(lsblk -pno NAME,MOUNTPOINT "$loop_dev" | grep -c ' ')-1))
     if [[ "$partitions_num" -ne 3 ]]; then
-        >&2 echo "The given disk image file '$disk_img' must has 3 partitions!"
+        >&2 echo "The given disk image file '$DISK_IMAGE' must has 3 partitions!"
         exit 1
     fi
 
@@ -97,7 +94,7 @@ set +e; ( set -e;
 # catch
 ); set -e;
 
-echo "Detaching loop device '$loop_dev' from image file '$disk_img'..."
+echo "Detaching loop device '$loop_dev' from image file '$DISK_IMAGE'..."
 sudo losetup -d "$loop_dev"
 echo "[OK]"
 
