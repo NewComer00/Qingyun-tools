@@ -7,6 +7,7 @@ ARGPARSE_DESCRIPTION="Edit the given DISK_IMAGE file dumped from the SD card of 
 source argparse.bash || exit 1
 argparse "$@" <<EOF || exit 1
 parser.add_argument('disk_image', help='path of the disk image file, i.e., ./qingyun.img')
+parser.add_argument('-r', '--as-root', action='store_true', help='login to shell as root user after chroot')
 EOF
 
 if [[ ! -f "$DISK_IMAGE" ]]; then
@@ -60,6 +61,10 @@ set +e; ( set -e;
     # try
     set +e; ( set -e;
 
+        user_after_chroot="HwHiAiUser"
+        if [[ "$AS_ROOT" == 'yes' ]]; then
+            user_after_chroot="root"
+        fi
         cmd_after_chroot=" \
             set -e;
             . ~/.bashrc; \
@@ -68,7 +73,8 @@ set +e; ( set -e;
             sudo mount \"${loop_dev}p3\" \"\$home_mntpnt\"; \
             echo \"[OK]\"; \
             echo \"========== Welcome to the inner world! ==========\"; \
-            set +e; ( set -e; su -l HwHiAiUser ); set -e; \
+            echo \"========== Press 'Ctrl-D' or execute 'exit' to quit. ==========\"; \
+            set +e; ( set -e; su -l ${user_after_chroot} ); set -e; \
             echo \"========== Goodbye from the inner world! ==========\"; \
             echo \"Unmounting '/home' (${loop_dev}p3) partition from \$home_mntpnt...\"; \
             umount \"\$home_mntpnt\"; \

@@ -7,32 +7,44 @@ import csv
 import time
 import shutil
 import pathlib
+import argparse
 import subprocess
 
+
+parser = argparse.ArgumentParser(description='Upgrade the kernel and drivers of the current OS.')
+parser.add_argument('-n', '--no-kernel', action='store_true',
+                    help='do not upgrade the kernel; only upgrade drivers')
+args = parser.parse_args()
 
 TOOL_DIR = pathlib.Path(__file__).parent.resolve()
 DRIVER_DIR = TOOL_DIR / "drivers"
 USERFILELIST_CSV_FILE = DRIVER_DIR / "userfilelist.csv"
+USERFILELIST_INSTALL_PATH = "/var/davinci/scripts/userfilelist.csv"
 KERNEL_IMAGE_DIR = TOOL_DIR / "kernel_image"
 KERNEL_IMAGE_FILE = KERNEL_IMAGE_DIR / "Image"
 
-print("Upgrading the kernel image...")
-time.sleep(1)
-subprocess.run(
-    [
-        "/var/davinci/driver/upgrade-tool",
-        "--device_index",
-        "-1",
-        "--component",
-        "kernel",
-        "--media",
-        "--mmc",
-        "--main",
-        "--path",
-        KERNEL_IMAGE_FILE,
-    ]
-)
-print("[Success]")
+if args.no_kernel:
+    print("Skip upgrading the kernel image.")
+else:
+    print("Upgrading the kernel image...")
+    time.sleep(1)
+    result = subprocess.run(
+        [
+            "/var/davinci/driver/upgrade-tool",
+            "--device_index",
+            "-1",
+            "--component",
+            "kernel",
+            "--media",
+            "--mmc",
+            "--main",
+            "--path",
+            KERNEL_IMAGE_FILE,
+        ]
+    )
+    if result.returncode != 0:
+        raise Exception(f"Error (return code {result.returncode}) happened during upgrading the kernel image. Exit.")
+    print("[Success]")
 print()
 
 print(f"Getting the list of drivers to be installed from '{USERFILELIST_CSV_FILE}' ...")
@@ -83,6 +95,14 @@ with io.StringIO(matched) as csv_file:
             os.chmod(path=relative_install_path, mode=permission)
             shutil.chown(path=relative_install_path, user=owner, group=group)
             print("[Success]")
-
 print()
+
+time.sleep(1)
+print(f"Installing '{USERFILELIST_CSV_FILE}' to '{USERFILELIST_INSTALL_PATH}' ...")
+shutil.copyfile(src=USERFILELIST_CSV_FILE, dst=USERFILELIST_INSTALL_PATH)
+os.chmod(path=USERFILELIST_INSTALL_PATH, mode=0o440)
+shutil.chown(path=USERFILELIST_INSTALL_PATH, user="root", group="root")
+print("[Success]")
+print()
+
 print("All upgrade completed! Please 'sudo reboot' the machine.")
