@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd "$(dirname "$(readlink -f "$0")")"
 
 
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 ARGPARSE_DESCRIPTION="Update the kernel sector in BLOCK_DEVICE or DISK_IMAGE with the KERNEL_IMAGE file."
-source argparse.bash || exit 1
+source "$SCRIPT_DIR/argparse.bash" || exit 1
 argparse "$@" <<EOF || exit 1
 parser.add_argument('kernel_image', help='path of the kernel image file, i.e., ./Image')
 group = parser.add_mutually_exclusive_group(required=True)
@@ -13,6 +13,11 @@ group.add_argument('-d', '--disk-image', help='path of the disk image file, i.e.
 parser.add_argument('-y', '--assume-yes', action='store_true', help='assume "yes" as answer to all prompts and run non-interactively')
 EOF
 
+ls "$KERNEL_IMAGE"
+if [[ ! -e "$KERNEL_IMAGE" ]]; then
+    >&2 echo "KERNEL_IMAGE '$KERNEL_IMAGE' does not exist."
+    exit 1
+fi
 if [[ -e "$BLOCK_DEVICE" ]]; then
     DISK_IMAGE=
     echo "sudo permission is required."
@@ -70,12 +75,12 @@ set +e; ( set -e; trap 'exit 1' SIGINT;
     IMAGE_SIZE=65536
 
     OF_DIR=$COMPONENTS_MAIN_OFFSET
-    sudo dd if=/dev/zero of=${DEV_NAME} count=$IMAGE_SIZE seek=$(( OF_DIR+IMAGE_OFFSET )) bs=$sectorSize
-    sudo dd if=${KERNEL_IMAGE} of=${DEV_NAME} count=$IMAGE_SIZE seek=$(( OF_DIR+IMAGE_OFFSET )) bs=$sectorSize
+    sudo dd if=/dev/zero of="${DEV_NAME}" count=$IMAGE_SIZE seek=$(( OF_DIR+IMAGE_OFFSET )) bs=$sectorSize
+    sudo dd if="${KERNEL_IMAGE}" of="${DEV_NAME}" count=$IMAGE_SIZE seek=$(( OF_DIR+IMAGE_OFFSET )) bs=$sectorSize
 
     OF_DIR=$COMPONENTS_BACKUP_OFFSET
-    sudo dd if=/dev/zero of=${DEV_NAME} count=$IMAGE_SIZE seek=$(( OF_DIR+IMAGE_OFFSET )) bs=$sectorSize
-    sudo dd if=${KERNEL_IMAGE} of=${DEV_NAME} count=$IMAGE_SIZE seek=$(( OF_DIR+IMAGE_OFFSET )) bs=$sectorSize
+    sudo dd if=/dev/zero of="${DEV_NAME}" count=$IMAGE_SIZE seek=$(( OF_DIR+IMAGE_OFFSET )) bs=$sectorSize
+    sudo dd if="${KERNEL_IMAGE}" of="${DEV_NAME}" count=$IMAGE_SIZE seek=$(( OF_DIR+IMAGE_OFFSET )) bs=$sectorSize
 
 # catch
 ); set -e;
