@@ -23,6 +23,12 @@ wget 'https://github.com/NewComer00/uPD72020x-Firmware/raw/master/UPDATE.mem%202
 ## USB摄像头
 通用设备
 
+## USB蓝牙适配器
+通用设备
+
+## USB声卡
+通用设备
+
 ## USB串口芯片
 ### CP210X
 ✅ [已测试]
