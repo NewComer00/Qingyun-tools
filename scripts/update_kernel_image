@@ -18,11 +18,14 @@ if [[ ! -e "$KERNEL_IMAGE" ]]; then
     >&2 echo "KERNEL_IMAGE '$KERNEL_IMAGE' does not exist."
     exit 1
 fi
+
+USER_CHOICE=''
 if [[ -e "$BLOCK_DEVICE" ]]; then
     DISK_IMAGE=
     echo "sudo permission is required."
     sudo lsblk "$BLOCK_DEVICE"
     DEV_NAME="$BLOCK_DEVICE"
+    USER_CHOICE='BLOCK_DEVICE'
 elif [[ -e "$DISK_IMAGE" ]]; then
     BLOCK_DEVICE=
     echo "Finding the first unused loop device..."
@@ -33,6 +36,7 @@ elif [[ -e "$DISK_IMAGE" ]]; then
     sudo losetup --partscan "$loop_dev" "$DISK_IMAGE"
     echo "[OK]"
     DEV_NAME="$loop_dev"
+    USER_CHOICE='DISK_IMAGE'
 else
     >&2 echo "You must specify a valid BLOCK_DEVICE or DISK_IMAGE"
     echo "KERNEL_IMAGE: $KERNEL_IMAGE"
@@ -85,7 +89,7 @@ set +e; ( set -e; trap 'exit 1' SIGINT;
 # catch
 ); set -e;
 
-if [[ -e "$loop_dev" ]]; then
+if [[ "$USER_CHOICE" == "DISK_IMAGE" && -e "$loop_dev" ]]; then
     echo "Detaching loop device '$loop_dev' from image file '$DISK_IMAGE'..."
     sudo losetup -d "$loop_dev"
     echo "[OK]"
