@@ -1,0 +1,480 @@
+/dts-v1/;
+
+/memreserve/	0x0000000000000000 0x0000000000010000;
+/ {
+	compatible = "hisilicon,hi1910-asic", "hisilicon,mini";
+	hisi,boardid = <1 0 0 4>;
+	hisi,slotid = <0 0 0 0>;
+	#address-cells = <0x2>;
+	#size-cells = <0x2>;
+	interrupt-parent = <0x1>;
+	model = "asic";
+
+	cpus {
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+
+		cpu0:cpu@0 {
+			device_type = "cpu";
+			compatible = "arm,armv8";
+			reg = <0x80000>;
+			enable-method = "psci";
+			/*cpu-idle-states = <&CPU_SLEEP_0>;*/
+			cpu-release-addr = <0x0 0xfff8>;
+		};
+
+		cpu1:cpu@1 {
+			device_type = "cpu";
+			compatible = "arm,armv8";
+			reg = <0x80100>;
+			enable-method = "psci";
+			/*cpu-idle-states = <&CPU_SLEEP_0>;*/
+			cpu-release-addr = <0x0 0xfff8>;
+		};
+
+		cpu2:cpu@2 {
+			device_type = "cpu";
+			compatible = "arm,armv8";
+			reg = <0x80200>;
+			enable-method = "psci";
+			/*cpu-idle-states = <&CPU_SLEEP_0>;*/
+			cpu-release-addr = <0x0 0xfff8>;
+		};
+
+		cpu3:cpu@3 {
+			device_type = "cpu";
+			compatible = "arm,armv8";
+			reg = <0x80300>;
+			enable-method = "psci";
+			/*cpu-idle-states = <&CPU_SLEEP_0>;*/
+			cpu-release-addr = <0x0 0xfff8>;
+		};
+
+		cpu4:cpu@4 {
+			device_type = "cpu";
+			compatible = "arm,armv8";
+			reg = <0x80400>;
+			enable-method = "psci";
+			/*cpu-idle-states = <&CPU_SLEEP_0>;*/
+			cpu-release-addr = <0x0 0xfff8>;
+		};
+
+		cpu5:cpu@5 {
+			device_type = "cpu";
+			compatible = "arm,armv8";
+			reg = <0x80500>;
+			enable-method = "psci";
+			/*cpu-idle-states = <&CPU_SLEEP_0>;*/
+			cpu-release-addr = <0x0 0xfff8>;
+		};
+
+		cpu6:cpu@6 {
+			device_type = "cpu";
+			compatible = "arm,armv8";
+			reg = <0x80600>;
+			enable-method = "psci";
+			/*cpu-idle-states = <&CPU_SLEEP_0>;*/
+			cpu-release-addr = <0x0 0xfff8>;
+		};
+
+		cpu7:cpu@7 {
+			device_type = "cpu";
+			compatible = "arm,armv8";
+			reg = <0x80700>;
+			enable-method = "psci";
+			/*cpu-idle-states = <&CPU_SLEEP_0>;*/
+			cpu-release-addr = <0x0 0xfff8>;
+		};
+
+		psci {
+			compatible = "arm,psci-0.2";
+			method = "smc";
+		};
+
+		cpu-map{
+			cluster0{
+				core0{
+					cpu = <&cpu0>;
+				};
+				core1{
+					cpu = <&cpu1>;
+				};
+				core2{
+					cpu = <&cpu2>;
+				};
+				core3{
+					cpu = <&cpu3>;
+				};
+			};
+			cluster1{
+				core0{
+					cpu = <&cpu4>;
+				};
+				core1{
+					cpu = <&cpu5>;
+				};
+				core2{
+					cpu = <&cpu6>;
+				};
+				core3{
+					cpu = <&cpu7>;
+				};
+			};
+		};
+
+		idle-states {
+		    entry-method = "arm,psci";
+
+		    CPU_SLEEP_0: cpu-sleep-0 {
+		        compatible = "arm,idle-state";
+		        arm,psci-suspend-param = <0x0010000>;
+		        entry-latency-us = <40>;
+		        exit-latency-us = <70>;
+		        min-residency-us = <3000>;
+		        local-timer-stop;
+		    };
+		};
+	};
+
+	interrupt-controller@109000000 {
+		compatible = "arm,gic-v3";
+		#interrupt-cells = <0x3>;
+		#address-cells = <0x2>;
+		#size-cells = <0x2>;
+		ranges;
+		interrupt-controller;
+		#redistributor-regions = <0x1>;
+		redistributor-stride = <0x0 0x40000>;
+		reg = <0x1 0x09000000 0x0 0x10000 0x1 0x09100000 0x0 0x800000>;
+		interrupts = <0x1 0x9 0xff04>;
+		linux,phandle = <0x1>;
+		phandle = <0x1>;
+
+		its: interrupt-controller@108000000 {
+			compatible = "arm,gic-v3-its";
+			msi-controller;
+			reg = <0x1 0x08000000 0x0 0x1000000>;
+		};
+	};
+
+	smmu0: smmu_peri@102000000 {
+		compatible = "arm,smmu-v3";
+		reg = <0x1 0x02000000 0x0 0x20000>;
+		interrupts = <0x0 0x23 0x1>, // 67 - event_ns
+			     <0x0 0x24 0x1>, // 68 - gerror_ns
+			     <0x0 0x25 0x1>; // 69 - sync_ns
+		interrupt-names = "eventq", "gerror", "cmdq-sync";
+		#iommu-cells = <1>;
+		dma-coherent;
+		hisilicon,broken-prefetch-cmd;
+		hisilicon,message-based-spi;
+		iommu-spi-base = <0x1 0x9000040>;
+        };
+
+	smmu1:smmu_a0@140100000 {
+		compatible = "arm,smmu-v3";
+		reg = <0x1 0x40100000 0x0 0x20000>;
+		interrupts = <0x0 0x1cd 0x1 0x0 0x1ce 0x1 0x0 0x1cf 0x1>;
+		interrupt-names = "eventq", "gerror", "cmdq-sync";
+		#iommu-cells = <0x1>;
+		dma-coherent;
+		hisilicon,broken-prefetch-cmd;
+		hisilicon,message-based-spi;
+		iommu-spi-base = <0x1 0x9000040>;
+	};
+
+	smmu2:smmu_a1@140300000 {
+		compatible = "arm,smmu-v3";
+		reg = <0x1 0x40300000 0x0 0x20000>;
+		interrupts = <0x0 0x1d8 0x1 0x0 0x1d9 0x1 0x0 0x1da 0x1>;
+		interrupt-names = "eventq", "gerror", "cmdq-sync";
+		#iommu-cells = <0x1>;
+		dma-coherent;
+		hisilicon,broken-prefetch-cmd;
+		hisilicon,message-based-spi;
+		iommu-spi-base = <0x1 0x9000040>;
+
+	};
+
+	davinci:davinci_svm {
+		compatible = "hisilicon,svm";
+		reg = <0x0 0x9FFC00 0 0x1000>;   // share memory
+		memory-region = <&l2buff>,
+				<&va2pa_trunk>;
+		ranges;
+		#size-cells = <0x2>;
+		#address-cells = <0x2>;
+		cpu-num = <8>;
+		interrupts = <0x0 0x118 0x1>, // 312 - ai cpu 0
+			     <0x0 0x119 0x1>, // 313 - ai cpu 1
+			     <0x0 0x11a 0x1>, // 314 - ai cpu 2
+			     <0x0 0x11b 0x1>, // 315 - ai cpu 3
+			     <0x0 0x11c 0x1>, // 316 - ai cpu 4
+			     <0x0 0x11d 0x1>, // 317 - ai cpu 5
+			     <0x0 0x11e 0x1>, // 318 - ai cpu 6
+			     <0x0 0x11f 0x1>; // 319 - ai cpu 7
+
+		sdma0 {
+			iommus = <&smmu0 0x7f87>;
+			dma-coherent;
+			dma-can-stall;
+			pasid-num-bits = <0x10>;
+		};
+
+		l2_pt {
+			iommus = <&smmu0 0x7fa6>;
+			dma-coherent;
+			dma-can-stall;
+			pasid-num-bits = <0x10>;
+			hisi,smmu_bypass;
+		};
+
+		core0 {
+			iommus = <&smmu1 0x7fa4>;
+			dma-coherent;
+			dma-can-stall;
+			pasid-num-bits = <0x10>;
+		};
+
+		core1 {
+			iommus = <&smmu2 0x7fa5>;
+			dma-coherent;
+			dma-can-stall;
+			pasid-num-bits = <0x10>;
+		};
+	};
+
+        /include/ "hi1910-asic-000-pinctrl.dtsi"
+        /include/ "hi1910-fpga-gpio.dtsi"
+        /include/ "hi1910-esl-pcie-rc.dtsi"
+        /include/ "hi1910-esl-devdrv.dtsi"
+        /include/ "hi1910-fpga-spi.dtsi"
+        /include/ "hi1910-fpga-i2c.dtsi"
+        /include/ "hi1910-fpga-dvpp-full.dtsi"
+	/include/ "hi1910-asic-nic.dtsi"
+        /include/ "hi1910-asic-sd.dtsi"
+        /include/ "hi1910-ipcdrv.dtsi"
+        /include/ "hi1910-lowpm.dtsi"
+        /include/ "hi1910-fpga-mntn.dtsi"
+        /include/ "hi1910-fpga-spmi.dtsi"
+        /include/ "hi1910-asic-usb.dtsi"
+	/include/ "hi1910-ts-drv.dtsi"
+
+	timer {
+		compatible = "arm,armv8-timer";
+		interrupts = <0x1 0xd 0xff08 0x1 0xe 0xff08 0x1 0xb 0xff08 0x1 0xa 0xff08>;
+	};
+
+	pmu {
+		compatible = "arm,armv8-pmuv3";
+		interrupts = <0x1 0x7 0x4>;
+	};
+
+
+	soc {
+		compatible = "simple-bus";
+		#address-cells = <0x2>;
+		#size-cells = <0x2>;
+		ranges;
+
+		uart@10cf80000 {
+			compatible = "arm,sbsa-uart";
+			reg = <0x1 0x0cf80000 0x0 0x10000>;
+			interrupts = <0x0 325 0x4>;
+			current-speed = <0x1c200>;
+		};
+		refclk200M: refclk200M {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <200000000>;
+			clock-output-names = "refclk";
+		};
+		uart1: uart1@130930000 {
+			compatible = "arm,pl011", "arm,primecell";
+			reg = <0x1 0x30930000 0x0 0x1000>;
+			interrupts = <0x0 326 0x4>;
+			clocks = <&refclk200M>;
+			clock-names = "apb_pclk";
+		};
+
+		l3c-pmu-mini@1000b0000 {
+			compatible = "hisilicon,l3c-pmu-mini";
+			hisilicon,scl-id = <1>;
+			hisilicon,ccl-id = <0>;
+			reg = <0x1 0x000b0000 0x0 0x10000>;
+			interrupts = <0x0 401 0x1>;
+		};
+
+		ddrc-os@130800000 {
+			compatible = "hisilicon,ddrc-pmu-mini";
+			hisilicon,ch-id = <0>;
+			hisilicon,scl-id = <1>;
+			reg = <0x01 0x30800000 0x0 0xc000>;
+			interrupts = <0x0 378 0x4>;
+		};
+
+		ddrc-os@130820000 {
+			compatible = "hisilicon,ddrc-pmu-mini";
+			hisilicon,ch-id = <1>;
+			hisilicon,scl-id = <1>;
+			reg = <0x01 0x30820000 0x0 0xc000>;
+			interrupts = <0x0 383 0x4>;
+		};
+
+		ddrc-os@130840000 {
+			compatible = "hisilicon,ddrc-pmu-mini";
+			hisilicon,ch-id = <2>;
+			hisilicon,scl-id = <1>;
+			reg = <0x01 0x30840000 0x0 0xc000>;
+			interrupts = <0x0 388 0x4>;
+		};
+
+		ddrc-os@130860000 {
+			compatible = "hisilicon,ddrc-pmu-mini";
+			hisilicon,ch-id = <3>;
+			hisilicon,scl-id = <1>;
+			reg = <0x01 0x30860000 0x0 0xc000>;
+			interrupts = <0x0 393 0x4>;
+		};
+
+		ddrc-os@10cd20000 {
+			compatible = "hisilicon,ddrc-pmu-mini";
+			hisilicon,ch-id = <4>;
+			hisilicon,scl-id = <1>;
+			reg = <0x01 0x0cd20000 0x0 0xc000>;
+			interrupts = <0x0 106 0x1>;
+		};
+
+		ddrc-os@10cd40000 {
+			compatible = "hisilicon,ddrc-pmu-mini";
+			hisilicon,ch-id = <5>;
+			hisilicon,scl-id = <1>;
+			reg = <0x01 0x0cd40000 0x0 0xc000>;
+			interrupts = <0x0 111 0x4>;
+		};
+
+		ddrc-os@10cd60000 {
+			compatible = "hisilicon,ddrc-pmu-mini";
+			hisilicon,ch-id = <6>;
+			hisilicon,scl-id = <1>;
+			reg = <0x01 0x0cd60000 0x0 0xc000>;
+			interrupts = <0x0 116 0x4>;
+		};
+
+		ddrc-os@10cd80000 {
+			compatible = "hisilicon,ddrc-pmu-mini";
+			hisilicon,ch-id = <7>;
+			hisilicon,scl-id = <1>;
+			reg = <0x01 0x0cd80000 0x0 0xc000>;
+			interrupts = <0x0 121 0x4>;
+		};
+
+		watchdog@10c200000{
+			compatible = "arm,sbsa-gwdt";
+			reg = <0x1 0x0c200000 0x0 0x10000>,
+				<0x1 0x0c210000 0x0 0x10000>;
+			interrupts = <0 143 1>;
+			timeout-sec = <10>;
+		};
+
+	};
+
+	memory@a00000 {
+		device_type = "memory";
+		reg = <0x0 0x7e00000 0x0 0x78200000>,
+			<0x8 0x80000000 0x1 0x80000000>;
+	};
+
+	reserved-memory {
+		#address-cells = <0x2>;
+		#size-cells = <0x2>;
+		ranges;
+
+		mm_reserved: test@0x0{
+			no-map;
+			reg = <0x0 0x0 0x0 0x7e00000>;
+		};
+
+		test_reserved: test@0x6fe00000{
+                        compatible = "for test";
+                        no-map;
+                        reg = <0x0 0x6fe00000 0x0 0x4000>;
+                };
+
+		blackbox_reserved: bboxbuffer@0x6E00000 {
+			compatible = "bbox buffer";
+			no-map;
+			reg = <0x0 0x6E00000 0x0 0xF00000>;
+		};
+
+		l2buff: l2buff@200000000 {
+			no-map;
+			reg = <0x2 0x00000000 0 0x800000>;
+		};
+
+		ts_sq: ts_sq@0x60000000 {
+			no-map;
+			reg = <0x0 0x60000000 0 0x2000000>;
+		};
+
+		va2pa_trunk: trunk@0x6cc00000 {
+			compatible = "va2pa trunk";
+			no-map;
+			reg = <0x0 0x6cc00000 0x0 0x3200000>;
+		};
+		ts_dma_sqcq_reserved: dma_cq_sq@0x7FF00000 {
+			compatible = "dma_cq_sq";
+			no-map;
+			reg = <0x0 0x7FF00000 0x0 0x100000>;
+		};
+	};
+
+	chosen {
+		kaslr-seed = <0xdeadc0de 0xdeadc0de>; // this field should be updated by BIOS
+		bootargs = "console=ttyAMA0,115200 root=/dev/mmcblk1p1 rw rootdelay=1 syslog no_console_suspend initrd=0x880004000,200M cma=356M@0x19800000 log_redirect=0x1fc000@0x6fe04000 default_hugepagesz=2M ascend_enable_all ascend_mini_enable systemd.unified_cgroup_hierarchy=0";
+	};
+
+	sysctrl@1100c0000 {
+		   compatible = "hisilicon,sysctrl";
+		   reg = <0x01 0x100C0000 0x0 0x10000>;
+	};
+
+	crgctrl@10c000000 {
+		   compatible = "hisilicon,crgctrl";
+		   reg = <0x01 0x0C000000 0x0 0x10000>;
+	};
+
+	timer19: timer@010C830000{
+		compatible = "arm,timer_wakeup";
+		rate = <19200000>;		//19.2MHz
+		reg = <0x1 0x0C830000 0x0 0x10000 0x1 0x0C003134 0x0 0x10000>;
+		interrupts = <0 85 1>;
+		status = "ok";
+	};
+
+	pmutsensor {
+		compatible = "hisilicon,pmuadc";
+		tsensor-name = "murata,ncp15xh103";
+		pullup-uv = <1800000>;
+		pullup-ohm = <10000>;
+		pulldown-ohm = <0>;
+	};
+
+	firmware {
+		sdei {
+			compatible      = "arm,sdei-1.0";
+			method          = "smc";
+		};
+	};
+
+	hisi_sleep_gpio {
+		compatible = "hisilicon,hisi-sleep-gpio";
+		is-enable = <1>;
+		sleep-gpio = <&porta 6 0>;
+	};
+
+	os_kbox {
+		compatible = "os_kbox";
+		reg = <0x0 0x71F0000 0x0 0x400000>;
+	};
+};

@@ -20,13 +20,16 @@ PREDEF_CFG_DIR=$ROOT_DIR/configs
 # ******************** LOCAL VARS ********************
 
 TOOLCHAIN_DIR=$BUILD_DIR/toolchain
-KERNEL_SRC_DIR=$BUILD_DIR/source/kernel/linux-$KERNEL_VERSION
+SOURCE_DIR=$BUILD_DIR/source
+KERNEL_SRC_DIR=$SOURCE_DIR/kernel/linux-$KERNEL_VERSION
 KERNEL_CFG_DIR=$KERNEL_SRC_DIR/arch/arm64/configs
+DTB_DIR=$SOURCE_DIR/dtb
 
 ORIGINAL_CFG=$BUILD_DIR/$KERNEL_CFG_NAME.original
 ASC_SRC_PACKAGE=$PACKAGE_DIR/Ascend310-source-minirc.tar.gz
 TOOLCHAIN_PACKAGE=$PACKAGE_DIR/gcc-*-x86_64_aarch64-linux-gnu.tar.xz
 KERNEL_CFG_RELATIVE=source/kernel/linux-$KERNEL_VERSION/arch/arm64/configs/$KERNEL_CFG_NAME
+DTB_DIR_RELATIVE=source/dtb
 
 ASC_SDK_URL='https://support.huawei.com/enterprise/zh/ascend-computing/atlas-200-pid-23464086/software'
 TOOLCHAIN_URL='http://releases.linaro.org/components/toolchain/binaries/5.4-2017.05/aarch64-linux-gnu/gcc-linaro-5.4.1-2017.05-x86_64_aarch64-linux-gnu.tar.xz'
@@ -111,13 +114,28 @@ restore_default_kernel_config () {
     fi
 }
 
-# 选择预设的内核配置
-choose_kernel_config () {
+# 恢复原始设备树目录
+restore_default_dtb_dir () {
+    echo '正在恢复原始设备树目录...'
+    if [ -f $ASC_SRC_PACKAGE ]; then
+        rm -rf $DTB_DIR
+        tar -xzf $ASC_SRC_PACKAGE --directory $BUILD_DIR $DTB_DIR_RELATIVE
+        echo '恢复完毕'
+    else
+        echoerr "找不到内核源码压缩包 $(basename $ASC_SRC_PACKAGE)\n请访问 $ASC_SDK_URL 下载所需版本的 Atlas-200-sdk_<版本号>.zip ，解压后将其中的 $(basename $ASC_SRC_PACKAGE) 放置在 $PACKAGE_DIR 目录下"
+        exit -1
+    fi
+}
+
+# 选择预设的内核配置文件与设备树目录
+choose_kernel_settings () {
+    cfg_name="mini_defconfig"
+
     echo '检索所有预设内核配置...'
     declare -a config_list
     while IFS=  read -r -d $'\0'; do
         config_list+=("$REPLY")
-    done < <(find "$PREDEF_CFG_DIR" -name "mini_defconfig" -print0)
+    done < <(find "$PREDEF_CFG_DIR" -name "$cfg_name" -print0)
 
     echo '查找到的预设内核配置如下：'
     printf "    %s. %s\n" "1" "使用华为源码包默认内核配置（不支持USB设备）"
@@ -132,10 +150,17 @@ choose_kernel_config () {
         err_flag=1
         echoerr '请输入合法的数字！'
     else
+        restore_default_dtb_dir
         if [[ $selection -eq 1 ]] ; then
             restore_default_kernel_config
         elif [[ $selection -ne 0 && $selection -le $((${#config_list[@]}+1)) ]] ; then
-            ln -fs "${config_list[$(($selection-2))]}" $ORIGINAL_CFG
+            base_dir="$(dirname "${config_list[$(($selection-2))]}")"
+            cfg_path="$base_dir/$cfg_name"
+            dtb_dir="$base_dir/dtb"
+            ln -fs "$cfg_path" "$ORIGINAL_CFG"
+            cp -rf "$dtb_dir"/* "$DTB_DIR"
+            echo "已选择内核配置文件 '$cfg_path'"
+            echo "已选择设备树目录 '$dtb_dir'"
         else
             err_flag=1
             echoerr '请输入合法的数字！'
@@ -178,6 +203,7 @@ build_kernel () {
     _make mrproper
     _build_sh kernel
     _build_sh modules
+    _build_sh dtb
     echo '编译内核完成'
 }
 
@@ -195,7 +221,7 @@ clear_build () {
 do_all () {
     echo '清空编译结果后，重新配置并编译内核'
     clear_build
-    choose_kernel_config
+    choose_kernel_settings
     change_kernel_config
     build_kernel
     echo '操作完成'
@@ -233,13 +259,13 @@ case $selection in
         ;;
     3)
         # 选择预设的内核配置
-        choose_kernel_config
+        choose_kernel_settings
         ;;
     4)
         # 修改内核配置
         if [ ! -f $ORIGINAL_CFG ]; then
             echo '修改内核配置前，请先选择要基于的预设内核配置'
-            choose_kernel_config
+            choose_kernel_settings
         fi
         change_kernel_config
         ;;

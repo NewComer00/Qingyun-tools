@@ -488,8 +488,8 @@ CONFIG_ASCEND_CLEAR_HUGEPAGE_DISABLE=y
 #
 # Boot options
 #
-CONFIG_CMDLINE="root=/dev/mmcblk1p1 rw rootdelay=1 syslog no_console_suspend initrd=0x880004000,200M cma=356M@0x19800000 log_redirect=0x1fc000@0x6fe04000 default_hugepagesz=2M ascend_enable_all enable_ascend_share_pool enable_sp_multi_group_mode ascend_mini_enable init_all_gicr reboot_reason=DEVICE_COLDBOOT himntn=1010000000000000000000000000000000000000000000000000000000000000 slotid=00 boardid=004 slaveboot=0 nr_hugepages=25 quiet splash pci=noaer pcie_aspm=off"
-CONFIG_CMDLINE_FORCE=y
+CONFIG_CMDLINE="console=ttyAMA0"
+# CONFIG_CMDLINE_FORCE is not set
 CONFIG_EFI_STUB=y
 CONFIG_EFI=y
 CONFIG_DMI=y

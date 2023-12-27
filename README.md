@@ -56,7 +56,7 @@ https://cloud.189.cn/web/share?code=niquM3u6N3Ar（访问码：gjk1）
 
 1. 在进行内核配置时，用户需要选择一个预设的内核配置方案。之后用户可以直接按照这个配置方案编译内核，或者基于该配置进行个性化修改。
 
-1. 编译完毕后，内核镜像与系统模块将输出至`build/source/output/`目录，同时也会生成用于驱动打包的`build/source/repack/`目录。编译过程中生成的其它文件位于`build/source/kernel/out/`目录。
+1. 编译完毕后，内核镜像、设备树镜像与系统模块将输出至`build/source/output/`目录，同时也会生成用于驱动打包的`build/source/repack/`目录。编译过程中生成的其它文件位于`build/source/kernel/out/`目录。
 
 1. `清空编译结果`会删除`build/source/output/`与`build/source/kernel/out/`目录，但**并不会修改`build/source/repack/`目录**。在“更新配置文件”和“重构驱动包”时请**特别注意该目录下文件的修改日期**，不要将旧文件误打包了。
 
